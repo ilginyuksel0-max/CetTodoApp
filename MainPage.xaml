@@ -22,11 +22,36 @@
                <DataTemplate>
                    <ViewCell>
                        <StackLayout Orientation="Horizontal">
-                           <Label Text="{Binding Title}"   
-                                  VerticalOptions="Center"  
-                                  /> 
-                           
-                           <Label 
+                          <ListView x:Name="TasksListView" ItemSelected="TasksListView_OnItemSelected">
+    <ListView.ItemTemplate>
+        <DataTemplate>
+            <ViewCell>
+                <StackLayout Orientation="Horizontal">
+                    
+                    <Label Text="{Binding Title}" VerticalOptions="Center" WidthRequest="150">
+                        <Label.Triggers>
+                            
+                            <DataTrigger TargetType="Label" Binding="{Binding IsComplete}" Value="True">
+                                <Setter Property="TextDecorations" Value="Strikethrough" />
+                                <Setter Property="TextColor" Value="#A8A8A8" /> 
+                            </DataTrigger>
+                            
+                            <DataTrigger TargetType="Label" Binding="{Binding IsOverdue}" Value="True">
+                                <Setter Property="TextColor" Value="Red" /> 
+                            </DataTrigger>
+                            
+                            <DataTrigger TargetType="Label" Binding="{Binding IsComplete}" Value="False">
+                                <Setter Property="TextColor" Value="Black" /> 
+                            </DataTrigger>
+                            
+                        </Label.Triggers>
+                    </Label>
+                    
+                    </StackLayout>
+            </ViewCell>
+        </DataTemplate>
+    </ListView.ItemTemplate>
+</ListView>
                                Text="{Binding DueDate, StringFormat=' (Due: {0:dd/MM})'}"
                                VerticalOptions="Center"/>
                            <CheckBox VerticalOptions="Center" IsChecked="{Binding IsComplete}" IsEnabled="False" ></CheckBox>
