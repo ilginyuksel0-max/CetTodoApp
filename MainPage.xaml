@@ -1,4 +1,36 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+
+
+public partial class MainPage : ContentPage
+{
+
+    private readonly TodoDatabase _database; 
+
+   
+    public MainPage(TodoDatabase todoDatabase) 
+    {
+        InitializeComponent();
+        
+        _database = todoDatabase; 
+     
+        LoadTodos(); 
+    }
+
+
+    private async void LoadTodos()
+    {
+        var todoList = await _database.GetItemsAsync();
+        
+    }
+
+
+    private async void OnAddTodoClicked(object sender, EventArgs e)
+    {
+        var newTodo = new TodoItem { Name = "Yeni Görev", Done = false };
+        await _database.SaveItemAsync(newTodo);
+        LoadTodos(); // Listeyi yeniden yükle
+    }
+}
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="CetTodoApp.MainPage">
