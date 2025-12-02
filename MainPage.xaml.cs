@@ -1,45 +1,77 @@
-﻿using CetTodoApp.Data;
+using System;
+using System.Collections.ObjectModel;
+using Microsoft.Maui.Controls;
+using CetTodoApp.Models;
 
-namespace CetTodoApp;
-
-public partial class MainPage : ContentPage
+namespace CetTodoApp
 {
-   
-
-    public MainPage()
+    public partial class MainPage : ContentPage
     {
-        InitializeComponent();
-        FakeDb.AddToDo("Test1" ,DateTime.Now.AddDays(-1));
-        FakeDb.AddToDo("Test2" ,DateTime.Now.AddDays(1));
-        FakeDb.AddToDo("Test3" ,DateTime.Now);
-        RefreshListView();
-        ;
+        public ObservableCollection<TaskItem> Tasks { get; set; } = new ObservableCollection<TaskItem>();
 
+        public MainPage()
+        {
+            InitializeComponent();
+            BindingContext = this;
+            DueDatePicker.Date = DateTime.Today;
+        }
 
-    }
+        private async void OnAddTaskClicked(object sender, EventArgs e)
+        {
+            string title = TitleEntry.Text?.Trim() ?? "";
+            DateTime dueDate = DueDatePicker.Date;
 
+            // 🔥 Validation 1: Title boş olamaz
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                await DisplayAlert("Error", "Title is required!", "OK");
+                return;
+            }
 
-    private void AddButton_OnClicked(object? sender, EventArgs e)
-    {
-        FakeDb.AddToDo(Title.Text, DueDate.Date);
-        Title.Text = string.Empty;
-        DueDate.Date=DateTime.Now;
-        RefreshListView();
-    }
+            // 🔥 Validation 2: Due date geçmiş olamaz
+            if (dueDate.Date < DateTime.Today)
+            {
+                await DisplayAlert("Error", "Due date cannot be in the past!", "OK");
+                return;
+            }
 
-    private void RefreshListView()
-    {
-        TasksListView.ItemsSource = null;
-        TasksListView.ItemsSource = FakeDb.Data.Where(x => !x.IsComplete ||
-                                                           (x.IsComplete && x.DueDate > DateTime.Now.AddDays(-1)))
-            .ToList();
-    }
+            Tasks.Add(new TaskItem
+            {
+                Id = Tasks.Count + 1,
+                Title = title,
+                DueDate = dueDate,
+                IsCompleted = false
+            });
 
-    private void TasksListView_OnItemSelected(object? sender, SelectedItemChangedEventArgs e)
-    {
-        var item = e.SelectedItem as TodoItem;
-       FakeDb.ChageCompletionStatus(item);
-       RefreshListView();
-       
+            TitleEntry.Text = "";
+            DueDatePicker.Date = DateTime.Today;
+        }
+
+        private void OnToggleCompleteClicked(object sender, EventArgs e)
+        {
+            if (sender is Button btn && btn.CommandParameter is TaskItem task)
+            {
+                task.IsCompleted = !task.IsCompleted;
+
+                int index = Tasks.IndexOf(task);
+                if (index >= 0)
+                {
+                    Tasks.RemoveAt(index);
+                    Tasks.Insert(index, task); // UI refresh
+                }
+            }
+        }
+
+        private async void OnDeleteClicked(object sender, EventArgs e)
+        {
+            if (sender is Button btn && btn.CommandParameter is TaskItem task)
+            {
+                bool confirm = await DisplayAlert("Delete", $"Delete '{task.Title}'?", "Yes", "No");
+                if (confirm)
+                {
+                    Tasks.Remove(task);
+                }
+            }
+        }
     }
 }
