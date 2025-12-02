@@ -1,5 +1,49 @@
-﻿using SQLite;
+using SQLite;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
+public class TodoDatabase
+{
+    // SQLiteAsyncConnection kullanıyoruz ki UI'ı engellemesin
+    readonly SQLiteAsyncConnection _database; 
+
+    // Veritabanı dosya yolu parametre olarak alınır
+    public TodoDatabase(string dbPath)
+    {
+        _database = new SQLiteAsyncConnection(dbPath);
+        // Eğer tablo yoksa oluştur
+        _database.CreateTableAsync<TodoItem>().Wait(); 
+    }
+
+    // --- CRUD Metotları ---
+
+    public Task<List<TodoItem>> GetItemsAsync()
+    {
+        return _database.Table<TodoItem>().ToListAsync();
+    }
+
+    public Task<TodoItem> GetItemAsync(int id)
+    {
+        return _database.GetAsync<TodoItem>(id);
+    }
+
+    public Task<int> SaveItemAsync(TodoItem item)
+    {
+        if (item.ID != 0)
+        {
+            return _database.UpdateAsync(item); // Güncelle
+        }
+        else
+        {
+            return _database.InsertAsync(item); // Ekle
+        }
+    }
+
+    public Task<int> DeleteItemAsync(TodoItem item)
+    {
+        return _database.DeleteAsync(item);
+    }
+}
 namespace CetTodoApp.Data;
 
 public class ToDoDB
